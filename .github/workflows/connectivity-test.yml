@@ -1,0 +1,16 @@
+name: connectivity-test
+on: workflow_dispatch
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check EU sources
+        run: |
+          for u in \
+            "https://data.europarl.europa.eu/api/v2/procedures?process-type=COD&limit=2&format=application%2Fld%2Bjson" \
+            "https://publications.europa.eu/webapi/rdf/sparql?query=ASK%20%7B%3Fs%20%3Fp%20%3Fo%7D" \
+            "https://data.consilium.europa.eu/" \
+            "https://www.consilium.europa.eu/en/documents-publications/public-register/oj-coreper-part-1/" \
+            "https://www.ipex.eu/" ; do
+            curl -s -L -m 30 -o /dev/null -w "%{http_code}  $u\n" "$u"
+          done
