@@ -63,6 +63,43 @@
   .notes li{margin:4px 0}
   .empty{color:var(--muted);padding:6px}
   @media (max-width:760px){ .steps{grid-template-columns:repeat(4,1fr)} }
+  /* ---- institution map ---- */
+  :root{ --pu:#3b2f8f; --pu-bg:#eeecfd; --pu-ln:#6c5fd0; --te:#0b5e45; --te-bg:#e1f3ec; --te-ln:#1f7a5a; --gr-bg:#efeee9; --gr-ln:#8a8a82; }
+  @media (prefers-color-scheme: dark){ :root{ --pu:#c9c2ff; --pu-bg:#26224a; --pu-ln:#7b6fe0; --te:#8fe0c2; --te-bg:#143a2e; --te-ln:#38b189; --gr-bg:#222730; --gr-ln:#5b6472; } }
+  [hidden]{display:none!important}
+  .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+  .seg button{background:var(--panel);color:var(--ink);border:0;padding:8px 12px;font:inherit;cursor:pointer}
+  .seg button.on{background:var(--accent);color:#fff}
+  .mapwrap{position:relative;aspect-ratio:1000/620;min-width:640px;max-width:1100px;margin:0 auto}
+  .mapwrap svg{position:absolute;inset:0;width:100%;height:100%}
+  .mapwrap line{stroke:var(--muted);stroke-width:2}
+  .mnode{position:absolute;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 14px;border-radius:12px;border:1.5px solid var(--gr-ln);background:var(--gr-bg);color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+  .mnode .mt{display:block;font-weight:700;font-size:15px;line-height:1.2}
+  .mnode .ms{display:block;font-size:12.5px;opacity:.85;line-height:1.25}
+  .mnode .mc{font-size:30px;font-weight:700;line-height:1}
+  .mnode .mna{font-size:11px;opacity:.7;text-align:right;max-width:70px;line-height:1.2}
+  .mnode.pu{background:var(--pu-bg);border-color:var(--pu-ln);color:var(--pu)}
+  .mnode.te{background:var(--te-bg);border-color:var(--te-ln);color:var(--te)}
+  .mnode.ok{background:var(--te-bg);border-color:var(--s7);color:var(--te)}
+  .mnode.na{border-style:dashed;cursor:default;opacity:.7}
+  :root{ --am:#7a5200; --am-bg:#fff4d6; --am-ln:#c9962b; }
+  @media (prefers-color-scheme: dark){ :root{ --am:#f0c46a; --am-bg:#3a2e12; --am-ln:#a07a22; } }
+  .mnode.am{background:var(--am-bg);border-color:var(--am-ln);color:var(--am)}
+  .mapwrap img.mic{width:72px;height:54px;object-fit:contain;flex:none}
+  .mapwrap svg.mic{position:static;inset:auto;width:68px;height:51px;flex:none;color:inherit}
+  .mnode .mtx{flex:1;min-width:0}
+  .mlabel{position:absolute;font-size:11.5px;color:var(--muted);line-height:1.2;max-width:12%;pointer-events:none}
+  @media (max-width:760px){ .mlabel{display:none} }  .mnode.sel{outline:3px solid var(--accent);outline-offset:2px}
+  .mnode:not(.na):hover{filter:brightness(.97)}
+  .maplist{margin-top:14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px}
+  .maplist h3{grid-column:1/-1;margin:4px 0;font-size:15px}
+  .maplist .empty{grid-column:1/-1}
+  .mapnote{font-size:13px;color:var(--muted);max-width:1100px;margin:10px auto 0}
+  @media (max-width:760px){
+    .mapwrap{aspect-ratio:auto;min-width:0;display:flex;flex-direction:column;gap:8px}
+    .mapwrap svg{display:none}
+    .mnode{position:static!important;width:100%!important;height:auto!important}
+  }
 </style>
 </head>
 <body>
@@ -76,9 +113,42 @@
     <input id="q" type="search" placeholder="Search title or number, e.g. “batteries” or 2026/0010">
     <select id="yr"><option value="">All years</option><option>2026</option><option>2025</option></select>
     <select id="sort"><option value="recent">Latest activity first</option><option value="old">Oldest activity first</option></select>
+    <div class="seg" role="group" aria-label="View"><button data-v="board">Stage board</button><button data-v="map">Institution map</button></div>
   </div>
 
   <div class="board" id="board" aria-label="Legislative stages"></div>
+
+  <div id="map" hidden>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <symbol id="flag" viewBox="0 0 24 16"><rect width="24" height="16" fill="#0b3d91"/><g fill="#ffd400"><circle cx="12" cy="3.2" r=".9"/><circle cx="14.4" cy="3.8" r=".9"/><circle cx="16.2" cy="5.6" r=".9"/><circle cx="16.8" cy="8" r=".9"/><circle cx="16.2" cy="10.4" r=".9"/><circle cx="14.4" cy="12.2" r=".9"/><circle cx="12" cy="12.8" r=".9"/><circle cx="9.6" cy="12.2" r=".9"/><circle cx="7.8" cy="10.4" r=".9"/><circle cx="7.2" cy="8" r=".9"/><circle cx="7.8" cy="5.6" r=".9"/><circle cx="9.6" cy="3.8" r=".9"/></g></symbol>
+  <symbol id="ic-com" viewBox="0 0 64 48"><g stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".55"><path d="M4 12 Q16 8 30 4M4 17 L30 12M4 22 L30 20M4 27 L30 28M4 32 L30 36"/><path d="M36 6 L60 28M40 4 L62 24M34 12 L58 34"/></g><use href="#flag" x="14" y="22" width="28" height="19"/></symbol>
+  <symbol id="ic-ep" viewBox="0 0 64 48"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" opacity=".55"><path d="M6 36 A26 26 0 0 1 58 36M12 36 A20 20 0 0 1 52 36M18 36 A14 14 0 0 1 46 36M24 36 A8 8 0 0 1 40 36"/></g><use href="#flag" x="30" y="24" width="28" height="19"/></symbol>
+  <symbol id="ic-co" viewBox="0 0 64 48"><g stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".55"><path d="M20 6H44M14 12H48M12 18H50M12 24H50M14 30H48M18 36H46"/></g><use href="#flag" x="24" y="22" width="28" height="19"/></symbol>
+  <symbol id="ic-ec" viewBox="0 0 64 48"><g stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".55"><path d="M22 6H42M16 12H46M14 18H48M14 24H48M16 30H46"/></g><use href="#flag" x="30" y="20" width="28" height="19"/></symbol>
+  <symbol id="ic-tri" viewBox="0 0 64 48"><g fill="none" stroke="currentColor" stroke-width="2.2" opacity=".7"><circle cx="24" cy="20" r="11"/><circle cx="40" cy="20" r="11"/><circle cx="32" cy="32" r="11"/></g></symbol>
+  <symbol id="ic-cmt" viewBox="0 0 64 48"><g fill="currentColor" opacity=".6"><circle cx="32" cy="10" r="4"/><circle cx="14" cy="24" r="4"/><circle cx="50" cy="24" r="4"/><circle cx="22" cy="38" r="4"/><circle cx="42" cy="38" r="4"/></g><ellipse cx="32" cy="24" rx="10" ry="6" fill="none" stroke="currentColor" stroke-width="2" opacity=".6"/></symbol>
+  <symbol id="ic-natl" viewBox="0 0 64 48"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" opacity=".6"><path d="M8 18L32 6L56 18Z"/><path d="M14 22V38M26 22V38M38 22V38M50 22V38M8 42H56"/></g></symbol>
+  <symbol id="ic-cor" viewBox="0 0 64 48"><g stroke="currentColor" stroke-width="3" stroke-linecap="round" opacity=".55"><path d="M20 10H44M14 18H50M14 26H50M20 34H44"/></g></symbol>
+  <symbol id="ic-law" viewBox="0 0 64 48"><g fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round" opacity=".7"><path d="M18 4H40L48 12V44H18Z"/><path d="M40 4V12H48M24 22H42M24 29H42M24 36H36"/></g></symbol>
+</defs></svg>
+    <div class="mapwrap" id="mapwrap">
+      <svg viewBox="0 0 1000 620" preserveAspectRatio="none" aria-hidden="true">
+        <defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 L9 5 L1 9" fill="none" stroke="var(--muted)" stroke-width="1.5"/></marker></defs>
+        <line x1="420" y1="110" x2="155" y2="248" marker-end="url(#ah)"/>
+        <line x1="580" y1="110" x2="790" y2="248" marker-end="url(#ah)"/>
+        <line x1="363" y1="60" x2="292" y2="60" marker-end="url(#ah)"/>
+        <line x1="698" y1="60" x2="637" y2="60" marker-end="url(#ah)"/>
+        <line x1="900" y1="110" x2="900" y2="248" marker-end="url(#ah)"/>
+        <line x1="155" y1="350" x2="155" y2="498" marker-end="url(#ah)"/>
+        <line x1="845" y1="350" x2="845" y2="498" marker-end="url(#ah)"/>
+        <line x1="290" y1="300" x2="398" y2="300" marker-start="url(#ah)" marker-end="url(#ah)"/>
+        <line x1="600" y1="300" x2="708" y2="300" marker-start="url(#ah)" marker-end="url(#ah)"/>
+        <line x1="770" y1="350" x2="635" y2="520" marker-end="url(#ah)"/>
+      </svg>
+    </div>
+    <div class="maplist" id="maplist"></div>
+    <p class="mapnote">Each number is how many files that institution currently holds. Parliament-side placements come directly from the Parliament's records. The Council box is inferred: it counts files where Parliament has adopted its position and Council approval is not yet recorded. The Council's earlier work, such as agreeing its negotiating position through Coreper, is not in this data. National parliaments and Coreper are shown for context only: this data source has no per-file information on them.</p>
+  </div>
 
   <section class="detail" id="detail" hidden></section>
 
@@ -140,7 +210,7 @@ const LAST = {
 const nice = t => LAST[t] || t.toLowerCase().replace(/_/g," ");
 
 const $ = s => document.querySelector(s);
-const state = {sel:null, id:null};
+const state = {sel:null, id:null, node:null, view: location.hash==="#map" ? "map" : "board"};
 function setBadge(){
   const b = $("#badge"), t = Date.parse(META.checked || "");
   const hrs = isNaN(t) ? null : (Date.now()-t)/36e5;
@@ -165,6 +235,9 @@ function filtered(){
 
 function render(){
   const rows = filtered();
+  $("#board").hidden = state.view !== "board"; $("#map").hidden = state.view !== "map";
+  document.querySelectorAll(".seg button").forEach(b=>b.classList.toggle("on", b.dataset.v===state.view));
+  if(state.view === "map"){ renderMap(rows); return; }
   const board = $("#board"); board.innerHTML = "";
   STAGES.forEach(st=>{
     const items = rows.filter(p=>p.s===st.n);
@@ -203,6 +276,57 @@ function showDetail(p){
   el.querySelector(".meta").textContent = `${p.l} · now at stage ${p.s} (${STAGES[p.s-1].t}) · last recorded step: ${p.d ? nice(p.y)+", "+p.d : "none yet, newly filed"}` + (p.r ? " · second reading" : "");
   el.scrollIntoView({behavior:"smooth",block:"nearest"});
 }
+
+// Institution map: each file sits on the institution that currently holds it.
+const NODES = [
+  {k:"natl",t:"National parliaments",r:"Subsidiarity check",cls:"gr",ic:"natl",x:20,y:10,w:270,h:100,na:true},
+  {k:"commission",t:"European Commission",r:"Proposes legislation",cls:"pu",ic:"com",x:365,y:10,w:270,h:100,f:p=>p.s===1},
+  {k:"ec",t:"European Council",r:"Sets political direction",cls:"am",ic:"ec",x:700,y:10,w:270,h:100,na:true},
+  {k:"plenary",t:"European Parliament",r:"Plenary · co-legislator",cls:"te",ic:"ep",x:20,y:250,w:270,h:100,f:p=>p.s===4},
+  {k:"trilogue",t:"Trilogue",r:"Both must agree",cls:"te",ic:"tri",x:400,y:260,w:200,h:80,f:p=>p.s===3},
+  {k:"council",t:"Council of the EU",r:"Final approval (inferred)",cls:"te",ic:"co",x:710,y:250,w:270,h:100,f:p=>p.s===5},
+  {k:"committee",t:"EP committee",r:"Rapporteur drafts report",cls:"gr",ic:"cmt",x:20,y:500,w:270,h:100,f:p=>p.s===2},
+  {k:"adopted",t:"Adopted law",r:"Signed or published",cls:"ok",ic:"law",x:365,y:500,w:270,h:100,f:p=>p.s>=6},
+  {k:"coreper",t:"Coreper",r:"Prepares Council work",cls:"gr",ic:"cor",x:710,y:500,w:270,h:100,na:true}
+];
+const LOGOS = {com:"assets/commission.png", ep:"assets/parliament.webp", co:"assets/council.webp", ec:"assets/council.webp"};
+const LABELS = [
+  {t:"proposes the law",x:150,y:150},
+  {t:"proposes the law",x:700,y:165},
+  {t:"guides, does not legislate",x:915,y:180},
+  {t:"guides",x:644,y:33}
+];
+function renderMap(rows){
+  const wrap = $("#mapwrap");
+  wrap.querySelectorAll(".mnode,.mlabel").forEach(n=>n.remove());
+  LABELS.forEach(l=>{ const e=document.createElement("span"); e.className="mlabel"; e.textContent=l.t; e.style.cssText=`left:${l.x/10}%;top:${l.y/6.2}%`; wrap.appendChild(e); });
+  NODES.forEach(n=>{
+    const items = n.f ? rows.filter(n.f) : [];
+    const b = document.createElement(n.na ? "div" : "button");
+    b.className = "mnode " + n.cls + (n.na ? " na" : "") + (state.node===n.k ? " sel" : "");
+    b.style.cssText = `left:${n.x/10}%;top:${n.y/6.2}%;width:${n.w/10}%;height:${n.h/6.2}%`;
+    b.innerHTML = (LOGOS[n.ic] ? `<img class="mic" src="${LOGOS[n.ic]}" alt="">` : `<svg class="mic" viewBox="0 0 64 48" aria-hidden="true"><use href="#ic-${n.ic}"/></svg>`) + `<span class="mtx"><span class="mt"></span><span class="ms"></span></span>` + (n.na ? `<span class="mna">no per-file data</span>` : `<span class="mc">${items.length}</span>`);
+    b.querySelector(".mt").textContent = n.t; b.querySelector(".ms").textContent = n.r;
+    if(!n.na) b.onclick = ()=>{ state.node = state.node===n.k ? null : n.k; render(); };
+    wrap.appendChild(b);
+  });
+  const L = $("#maplist"); L.innerHTML = "";
+  const sel = NODES.find(n=>n.k===state.node);
+  if(!sel){ L.innerHTML = '<div class="empty">Click an institution to list the files it currently holds.</div>'; return; }
+  const items = rows.filter(sel.f);
+  const h = document.createElement("h3"); h.textContent = sel.t + ": " + items.length + " file" + (items.length===1?"":"s"); L.appendChild(h);
+  items.forEach(p=>{
+    const b = document.createElement("button"); b.className = "card" + (state.id===p.i ? " on" : "");
+    b.innerHTML = `<span class="l"></span><span class="t"></span>`;
+    b.querySelector(".l").textContent = `${p.l}${p.r?" · 2nd reading":""} · ${STAGES[p.s-1].t} · ${p.d||"newly filed"}`;
+    b.querySelector(".t").textContent = p.t || "(untitled)";
+    b.onclick = ()=>{ state.id = p.i; render(); showDetail(p); };
+    L.appendChild(b);
+  });
+}
+document.querySelectorAll(".seg button").forEach(b=>b.addEventListener("click", ()=>{
+  state.view = b.dataset.v; history.replaceState(null, "", state.view==="map" ? "#map" : location.pathname + location.search); render();
+}));
 
 ["#q","#yr","#sort"].forEach(s=>$(s).addEventListener("input",render));
 load();
