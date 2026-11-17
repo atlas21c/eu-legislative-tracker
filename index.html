@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>EU Legislation Tracker – where each file stands</title>
+<style>
+  :root{
+    --bg:#f6f7f9; --panel:#ffffff; --ink:#14181f; --muted:#5b6472; --line:#dfe3ea;
+    --accent:#1f4e9c; --accent-soft:#e6eefb;
+    --s1:#c9d8f0; --s2:#9db9e3; --s3:#6f98d3; --s4:#4377c0; --s5:#2a5ca3; --s6:#1f7a5a; --s7:#145a42;
+    --warn:#8a5a00; --warn-bg:#fff4d6;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#0f1319; --panel:#171c24; --ink:#e8ecf2; --muted:#9aa4b2; --line:#2a313c;
+      --accent:#7aa7ec; --accent-soft:#1d2a40;
+      --s1:#2b3a55; --s2:#34508a; --s3:#3d68b3; --s4:#4f84d6; --s5:#6a9be6; --s6:#38b189; --s7:#52c9a1;
+      --warn:#f0c46a; --warn-bg:#3a2e12;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  header{padding:22px 24px 8px;max-width:1280px;margin:0 auto}
+  h1{font-size:22px;margin:0 0 4px;letter-spacing:-.01em}
+  .sub{color:var(--muted);margin:0}
+  .badge{display:inline-flex;gap:8px;align-items:center;margin-top:12px;padding:6px 10px;border-radius:8px;background:var(--warn-bg);color:var(--warn);font-size:13px}
+  main{max-width:1280px;margin:0 auto;padding:8px 24px 48px}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
+  input[type=search],select{background:var(--panel);color:var(--ink);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:inherit}
+  input[type=search]{min-width:260px;flex:1}
+  .board{display:grid;grid-template-columns:repeat(7,minmax(150px,1fr));gap:10px;overflow-x:auto;padding-bottom:6px}
+  .col{background:var(--panel);border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;min-width:150px;max-height:560px}
+  .col.sel{outline:2px solid var(--accent)}
+  .colhead{padding:10px 12px;border-bottom:1px solid var(--line);cursor:pointer;border-top:5px solid var(--c);border-radius:12px 12px 0 0}
+  .colhead .n{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .colhead .t{font-weight:600;font-size:14px;line-height:1.25}
+  .colhead .c{font-size:24px;font-weight:700;line-height:1.2}
+  .colhead .d{font-size:12px;color:var(--muted)}
+  .cards{overflow:auto;padding:8px;display:flex;flex-direction:column;gap:6px}
+  .card{border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:var(--bg);cursor:pointer;font-size:12.5px;line-height:1.35;text-align:left;color:var(--ink);width:100%}
+  .card:hover,.card.on{border-color:var(--accent);background:var(--accent-soft)}
+  .card .l{display:block;color:var(--muted);font-size:11px}
+  .card .t{display:block;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+  .more{font-size:12px;color:var(--muted);padding:2px 4px}
+  .detail{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .detail h2{margin:0 0 2px;font-size:17px}
+  .detail .meta{color:var(--muted);font-size:13px;margin-bottom:12px}
+  .steps{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin:10px 0}
+  .step{border-top:5px solid var(--line);padding-top:6px;font-size:12px;color:var(--muted)}
+  .step.done{border-top-color:var(--c);color:var(--ink)}
+  .step.now{border-top-color:var(--c);color:var(--ink);font-weight:700}
+  .step .dt{display:block;font-weight:400;color:var(--muted)}
+  a{color:var(--accent)}
+  .ref{margin-top:26px}
+  .ref h2{font-size:17px;margin:0 0 6px}
+  .flow{display:flex;flex-wrap:wrap;gap:8px;align-items:stretch;margin:10px 0}
+  .node{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:13px;min-width:140px;flex:1}
+  .node b{display:block}
+  .arrow{align-self:center;color:var(--muted)}
+  .branch{background:var(--panel);border:1px dashed var(--line);border-radius:10px;padding:10px 12px;font-size:13px;margin-top:8px;color:var(--muted)}
+  .notes{font-size:13px;color:var(--muted);margin-top:18px}
+  .notes li{margin:4px 0}
+  .empty{color:var(--muted);padding:6px}
+  @media (max-width:760px){ .steps{grid-template-columns:repeat(4,1fr)} }
+</style>
+</head>
+<body>
+<header>
+  <h1>EU legislation tracker: where each file stands</h1>
+  <p class="sub">Ordinary legislative procedure (co-decision), proposals from 2025 and 2026 placed at their latest recorded stage.</p>
+  <div class="badge" id="badge"></div>
+</header>
+<main>
+  <div class="controls">
+    <input id="q" type="search" placeholder="Search title or number, e.g. “batteries” or 2026/0010">
+    <select id="yr"><option value="">All years</option><option>2026</option><option>2025</option></select>
+    <select id="sort"><option value="recent">Latest activity first</option><option value="old">Oldest activity first</option></select>
+  </div>
+
+  <div class="board" id="board" aria-label="Legislative stages"></div>
+
+  <section class="detail" id="detail" hidden></section>
+
+  <section class="ref">
+    <h2>The full procedure at a glance (Art. 294 TFEU)</h2>
+    <div class="flow">
+      <div class="node"><b>1 Commission proposal</b>Only the Commission can propose; sent to Parliament and Council.</div><div class="arrow">→</div>
+      <div class="node"><b>2 Committee</b>Rapporteur drafts a report, MEPs table amendments, committee votes.</div><div class="arrow">→</div>
+      <div class="node"><b>3 Negotiations</b>Parliament and Council negotiate in trilogues to reach a provisional agreement.</div><div class="arrow">→</div>
+      <div class="node"><b>4 Plenary</b>Parliament votes its first-reading position.</div><div class="arrow">→</div>
+      <div class="node"><b>5 Council</b>Council approves Parliament's position: the act is adopted.</div><div class="arrow">→</div>
+      <div class="node"><b>6 Signature</b>Presidents of both institutions sign.</div><div class="arrow">→</div>
+      <div class="node"><b>7 Official Journal</b>Published; enters into force on the date it sets.</div>
+    </div>
+    <div class="branch"><b>If Council does not approve Parliament's position at first reading:</b> Council adopts its own position, then Parliament's second reading (3 months, extendable by 1) and Council's second reading (3 + 1 months) follow. If they still disagree, a Conciliation Committee has 6 (+2) weeks to agree a joint text, and both institutions then have 6 (+2) weeks for a third reading. Most files never get past the first reading. <a href="https://en.wikipedia.org/wiki/European_Union_legislative_procedure" target="_blank" rel="noopener">More on Wikipedia</a></div>
+  </section>
+
+  <ul class="notes">
+    <li><b>How stages are assigned:</b> each file sits at the stage of its most recent recorded event in the European Parliament's Open Data Portal. The Parliament publishes its own steps; Council steps are not in that data, so stage 5 means “Parliament's position adopted, awaiting Council” and is inferred, and a file the Council has adopted shows as signed only once the signature is recorded.</li>
+    <li><b>Near real time, not instant.</b> A scheduled job re-reads the Parliament's data every few hours and republishes this page's data file. New events appear once the Parliament records them. The Council's internal steps are not published in this source.</li>
+    <li>Second-reading and conciliation files are flagged on the card where the data marks them.</li>
+    <li>Source: European Parliament Open Data Portal (data.europarl.europa.eu), procedures API v2. Date format is year-month-day.</li>
+  </ul>
+</main>
+
+<script>
+const DATA_URL = "data/data.json";
+let DATA = [], META = {};
+const STAGES = [
+  {n:1,t:"Proposal",d:"Commission proposal received and referred",c:"var(--s1)"},
+  {n:2,t:"Committee",d:"Draft report, amendments, committee vote",c:"var(--s2)"},
+  {n:3,t:"Negotiations",d:"Trilogues, provisional agreement",c:"var(--s3)"},
+  {n:4,t:"Plenary",d:"Debate and vote in Parliament",c:"var(--s4)"},
+  {n:5,t:"Awaiting Council",d:"Parliament position adopted",c:"var(--s5)"},
+  {n:6,t:"Signed",d:"Signed by both Presidents",c:"var(--s6)"},
+  {n:7,t:"Published",d:"In the Official Journal",c:"var(--s7)"}
+];
+const LAST = {
+  REFERRAL:"Referred to committee",
+  COMMITTEE_TABLING_AMENDMENT:"Amendments tabled in committee",
+  COMMITTEE_TABLING_REPORT:"Draft report tabled in committee",
+  COMMITTEE_TABLING_OPINION:"Draft opinion tabled",
+  COMMITTEE_ADOPTING_OPINION:"Committee opinion adopted",
+  COMMITTEE_ADOPTING_REPORT:"Committee report adopted",
+  TABLING_PLENARY:"Report tabled for plenary",
+  PLENARY_DEBATE:"Plenary debate",
+  PLENARY_AMEND:"Plenary amendments",
+  PLENARY_AMEND_PROPOSAL:"Plenary amends proposal",
+  PLENARY_VOTE:"Plenary vote",
+  PLENARY_VOTE_RESULTS:"Plenary vote results",
+  PLENARY_ADOPT_POSITION:"Parliament position adopted",
+  PLENARY_REFER_COMMITTEE_INTERINSTITUTIONAL_NEGOTIATIONS:"Mandate for negotiations",
+  INTERINSTITUTIONAL_NEGOTIATION:"Trilogue negotiation",
+  COMMITTEE_APPROVE_PROVISIONAL_AGREEMENT:"Committee approved provisional agreement",
+  PLENARY_ENDORSE_COMMITTEE_INTERINSTITUTIONAL_NEGOTIATIONS:"Plenary endorsed negotiating mandate",
+  SIGNATURE:"Signed",
+  PUBLICATION_OFFICIAL_JOURNAL:"Published in the Official Journal"
+};
+const nice = t => LAST[t] || t.toLowerCase().replace(/_/g," ");
+
+const $ = s => document.querySelector(s);
+const state = {sel:null, id:null};
+function setBadge(){
+  const b = $("#badge"), t = Date.parse(META.checked || "");
+  const hrs = isNaN(t) ? null : (Date.now()-t)/36e5;
+  const when = isNaN(t) ? "unknown" : META.checked.slice(0,16).replace("T"," ") + " UTC";
+  b.textContent = "Data checked " + when + " against the European Parliament Open Data Portal (refreshes automatically every few hours). " + DATA.length + " files, latest recorded activity " + (META.latest||"n/a") + "." + (hrs!==null && hrs>36 ? " Warning: the automatic update looks stalled, data may be out of date." : "");
+}
+async function load(){
+  try{
+    const r = await fetch(DATA_URL + "?t=" + Date.now(), {cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    const j = await r.json(); DATA = j.procedures || []; META = j; setBadge();
+  }catch(e){ $("#badge").textContent = "Could not load data/data.json (" + e.message + ")."; }
+  render();
+}
+
+function filtered(){
+  const q = $("#q").value.trim().toLowerCase(), y = $("#yr").value, s = $("#sort").value;
+  let r = DATA.filter(p => (!y || p.l.startsWith(y)) && (!q || p.l.toLowerCase().includes(q) || (p.t||"").toLowerCase().includes(q)));
+  r.sort((a,b)=> s==="old" ? (a.d||"").localeCompare(b.d||"") : (b.d||"").localeCompare(a.d||""));
+  return r;
+}
+
+function render(){
+  const rows = filtered();
+  const board = $("#board"); board.innerHTML = "";
+  STAGES.forEach(st=>{
+    const items = rows.filter(p=>p.s===st.n);
+    const col = document.createElement("div");
+    col.className = "col" + (state.sel===st.n ? " sel":"");
+    col.style.setProperty("--c", st.c);
+    const head = document.createElement("div"); head.className = "colhead";
+    head.innerHTML = `<div class="n">Stage ${st.n}</div><div class="t">${st.t}</div><div class="c">${items.length}</div><div class="d">${st.d}</div>`;
+    head.onclick = ()=>{ state.sel = state.sel===st.n ? null : st.n; render(); };
+    col.appendChild(head);
+    const cards = document.createElement("div"); cards.className = "cards";
+    const show = (state.sel===st.n) ? items : items.slice(0,40);
+    show.forEach(p=>{
+      const b = document.createElement("button"); b.className = "card" + (state.id===p.i?" on":"");
+      b.innerHTML = `<span class="l">${p.l}${p.r?" · 2nd reading":""} · ${p.d||"newly filed"}</span><span class="t"></span>`;
+      b.querySelector(".t").textContent = p.t || "(untitled)";
+      b.onclick = ()=>{ state.id = p.i; render(); showDetail(p); };
+      cards.appendChild(b);
+    });
+    if(!items.length){ const e=document.createElement("div"); e.className="empty"; e.textContent="None"; cards.appendChild(e); }
+    else if(items.length>show.length){ const m=document.createElement("div"); m.className="more"; m.textContent=`+${items.length-show.length} more: click the header to list all`; cards.appendChild(m); }
+    col.appendChild(cards); board.appendChild(col);
+  });
+}
+
+function showDetail(p){
+  const el = $("#detail"); el.hidden = false;
+  const steps = STAGES.map(st=>{
+    const dt = p.sd[st.n-1];
+    const cls = st.n===p.s ? "now" : (st.n<p.s ? "done" : "");
+    return `<div class="step ${cls}" style="--c:${st.c}">${st.t}<span class="dt">${dt||(st.n<p.s?"no event recorded":"")}</span></div>`;
+  }).join("");
+  const url = "https://oeil.secure.europarl.europa.eu/oeil/en/procedure-file?reference=" + encodeURIComponent(p.l);
+  el.innerHTML = `<h2></h2><div class="meta"></div><div class="steps">${steps}</div><div><a target="_blank" rel="noopener" href="${url}">Open the official procedure file (Legislative Observatory)</a></div>`;
+  el.querySelector("h2").textContent = p.t || p.l;
+  el.querySelector(".meta").textContent = `${p.l} · now at stage ${p.s} (${STAGES[p.s-1].t}) · last recorded step: ${p.d ? nice(p.y)+", "+p.d : "none yet, newly filed"}` + (p.r ? " · second reading" : "");
+  el.scrollIntoView({behavior:"smooth",block:"nearest"});
+}
+
+["#q","#yr","#sort"].forEach(s=>$(s).addEventListener("input",render));
+load();
+</script>
+</body>
+</html>
